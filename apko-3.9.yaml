@@ -1,0 +1,10 @@
+contents:
+  repositories:
+    - https://dl-cdn.alpinelinux.org/alpine/edge/main
+    - '@3.15 https://dl-cdn.alpinelinux.org/alpine/v3.15/main'
+    - '@3.15 https://dl-cdn.alpinelinux.org/alpine/v3.15/community'
+  packages:
+    - alpine-base
+    - python3~3.9@3.15
+    - py3-pip@3.15
+#archs: [386, amd64]

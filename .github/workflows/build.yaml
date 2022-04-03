@@ -1,0 +1,21 @@
+on: {push: {branches: [main]}, schedule: [{cron: '01 13 * * *'}]}
+name: Build
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: {packages: write, contents: read}
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - {python-release: '3.8'}
+          - {python-release: '3.9'}
+          - {python-release: '3.10'}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: chainguard-dev/actions/apko-build@main
+        with:
+          # Very dirty hack
+          config: --arch x86,x86_64 apko-${{ matrix.python-release }}.yaml
+          #config: apko-${{ matrix.python-release }}.yaml
+          tag: ghcr.io/infrabits/python3-alpine:${{ matrix.python-release }}
