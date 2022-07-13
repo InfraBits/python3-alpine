@@ -3,15 +3,16 @@ name: Build
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: {packages: write, contents: read}
+    permissions: {id-token: write, packages: write, contents: read}
     continue-on-error: true
     strategy:
       matrix:
         include:
           - {python-release: '3.10'}
+    concurrency: 'python3-alpine-${{ matrix.python-release }}'
     steps:
       - uses: actions/checkout@v3
-      - uses: distroless/actions/apko-publish@main
+      - uses: distroless/actions/apko-snapshot@main
         with:
           config: apko-${{ matrix.python-release }}.yaml
-          tag: ghcr.io/infrabits/python3-alpine:${{ matrix.python-release }}
+          base-tag: ghcr.io/infrabits/python3-alpine:${{ matrix.python-release }}
