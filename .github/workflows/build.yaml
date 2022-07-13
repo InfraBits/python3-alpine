@@ -1,4 +1,4 @@
-on: {push: {branches: [main]}, schedule: [{cron: '01 13 * * *'}]}
+on: {push: {branches: [main]}, schedule: [{cron: '01 13 * * *'}], workflow_dispatch: {}}
 name: Build
 jobs:
   build:
