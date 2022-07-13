@@ -15,4 +15,4 @@ jobs:
       - uses: distroless/actions/apko-snapshot@main
         with:
           config: apko-${{ matrix.python-release }}.yaml
-          base-tag: ghcr.io/infrabits/python3-alpine:${{ matrix.python-release }}
+          base-tag: ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}
