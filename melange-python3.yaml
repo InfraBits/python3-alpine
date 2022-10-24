@@ -3,7 +3,7 @@ package:
   version: 3.11.0
   epoch: 0
   description: A high-level scripting language
-  target-architecture: [all]
+  target-architecture: [386, amd64]
   copyright:
     - paths: ["*"]
       license: PSF-2.0
