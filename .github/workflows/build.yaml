@@ -18,6 +18,7 @@ jobs:
           config: melange-python3.yaml
           sign-with-temporary-key: true
           empty-workspace: true
+          repository-path: /github/workspace/
         if: matrix.python-release == '3.11'
       - uses: chainguard-images/actions/apko-snapshot@main
         with:
