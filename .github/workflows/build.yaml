@@ -20,6 +20,7 @@ jobs:
           empty-workspace: true
           repository-path: /github/workspace/
         if: matrix.python-release == '3.11'
+      - run: find /github/workspace/
       - uses: chainguard-images/actions/apko-snapshot@main
         with:
           config: apko-${{ matrix.python-release }}.yaml
