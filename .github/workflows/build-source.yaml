@@ -8,9 +8,8 @@ jobs:
     strategy:
       matrix:
         include:
-          # - {python-release: '3.10'}
-          # - {python-release: '3.11'}
-          - {python-release: 'test'}
+          - {python-release: '3.10'}
+          - {python-release: '3.11'}
     concurrency: 'python3-alpine-${{ matrix.python-release }}'
     steps:
       - uses: actions/checkout@v3
@@ -22,7 +21,6 @@ jobs:
           repository-path: /work/packages
           empty-workspace: false
           sign-with-temporary-key: true
-      - run: find /work
       - name: Create temp copy of /work directory (used in next step)
         shell: bash
         run: |
