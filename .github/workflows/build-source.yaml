@@ -8,27 +8,20 @@ jobs:
     strategy:
       matrix:
         include:
-          - {python-release: '3.10'}
-          - {python-release: '3.11'}
+          # - {python-release: '3.10'}
+          # - {python-release: '3.11'}
+          - {python-release: 'test'}
     concurrency: 'python3-alpine-${{ matrix.python-release }}'
     steps:
       - uses: actions/checkout@v3
+      - run: find /github/workspace/
       - uses: chainguard-dev/actions/melange-build@main
         with:
-          config: melange-python3.yaml
+          config: melange-${{ matrix.python-release }}.yaml
           sign-with-temporary-key: true
-          empty-workspace: true
-        if: matrix.python-release == '3.11'
+      - run: find /github/workspace/
       - uses: chainguard-images/actions/apko-snapshot@main
         with:
-          config: apko-${{ matrix.python-release }}.yaml
+          config: apko.yaml
           base-tag: ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}
           keyring-append: /github/workspace/melange.rsa.pub
-          automount-src: /github/workspace
-          automount-dest: /github/workspace
-        if: matrix.python-release == '3.11'
-      - uses: chainguard-images/actions/apko-snapshot@main
-        with:
-          config: apko-${{ matrix.python-release }}.yaml
-          base-tag: ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}
-        if: matrix.python-release != '3.11'

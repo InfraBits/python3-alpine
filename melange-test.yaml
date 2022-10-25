@@ -1,0 +1,23 @@
+package:
+  name: python3
+  version: test
+  epoch: 0
+  description: A high-level scripting language
+  target-architecture: [386, amd64]
+  copyright:
+    - paths: ["*"]
+      license: PSF-2.0
+
+environment:
+  contents:
+    repositories: [https://dl-cdn.alpinelinux.org/alpine/edge/main]
+    packages:
+      - busybox
+      - ca-certificates-bundle
+      - build-base
+
+pipeline:
+  - name: Force use of system libraries
+    runs: |
+      mkdir -p "${{targets.destdir}}"/opt
+      touch "${{targets.destdir}}"/opt/hello-world
