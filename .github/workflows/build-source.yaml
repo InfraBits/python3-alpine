@@ -14,14 +14,22 @@ jobs:
     concurrency: 'python3-alpine-${{ matrix.python-release }}'
     steps:
       - uses: actions/checkout@v3
-      - run: find /github/workspace/
       - uses: chainguard-dev/actions/melange-build@main
         with:
           config: melange-${{ matrix.python-release }}.yaml
+          signing-key-path: /work/melange.rsa
+          repository-path: /work/packages
+          empty-workspace: false
           sign-with-temporary-key: true
-      - run: find /github/workspace/
+      - run: find /workd
+      - name: Create temp copy of /work directory (used in next step)
+        shell: bash
+        run: |
+          rm -rf .apko-automount && cp -r /work .apko-automount
       - uses: chainguard-images/actions/apko-snapshot@main
         with:
           config: apko.yaml
           base-tag: ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}
-          keyring-append: /github/workspace/melange.rsa.pub
+          keyring-append: /work/melange.rsa.pub
+          automount-src: .apko-automount
+          automount-dest: /work
