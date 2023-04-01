@@ -1,6 +1,6 @@
 package:
   name: python3
-  version: 3.11.0
+  version: 3.11.2
   epoch: 0
   description: A high-level scripting language
   target-architecture: [amd64]
@@ -31,8 +31,8 @@ environment:
 pipeline:
   - uses: fetch
     with:
-      uri: https://www.python.org/ftp/python/3.11.0/Python-3.11.0.tgz
-      expected-sha256: 64424e96e2457abbac899b90f9530985b51eef2905951febd935f0e73414caeb
+      uri: https://www.python.org/ftp/python/3.11.2/Python-3.11.2.tgz
+      expected-sha256: 2411c74bda5bbcfcddaf4531f66d1adc73f247f529aee981b029513aefdbf849
   - name: Force use of system libraries
     runs: |
       rm -rf Modules/expat \
