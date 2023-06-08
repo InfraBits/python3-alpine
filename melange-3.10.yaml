@@ -31,8 +31,8 @@ environment:
 pipeline:
   - uses: fetch
     with:
-      uri: https://www.python.org/ftp/python/3.10.10/Python-3.10.10.tgz
-      expected-sha256: fba64559dde21ebdc953e4565e731573bb61159de8e4d4cedee70fb1196f610d
+      uri: https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz
+      expected-sha256: a43cd383f3999a6f4a7db2062b2fc9594fefa73e175b3aedafa295a51a7bb65c
   - name: Force use of system libraries
     runs: |
       rm -rf Modules/expat \
