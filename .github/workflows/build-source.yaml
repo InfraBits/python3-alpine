@@ -28,6 +28,7 @@ jobs:
       - uses: chainguard-images/actions/apko-snapshot@main
         with:
           config: apko.yaml
+          archs: amd64
           base-tag: ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}
           keyring-append: /work/melange.rsa.pub
           automount-src: .apko-automount
