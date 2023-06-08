@@ -1,0 +1,30 @@
+on: {push: {branches: [main]}, schedule: [{cron: '13 0 * * *'}], workflow_dispatch: {}}
+name: Update Source
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: {id-token: write, packages: write, contents: write}
+    continue-on-error: true
+    strategy:
+      matrix:
+        include:
+          - {python-release: '3.10'}
+          - {python-release: '3.11'}
+    concurrency: 'python3-update-${{ matrix.python-release }}'
+    steps:
+      - uses: actions/checkout@v3
+      - run: |
+          pip install --upgrade requests bs4
+          latest_version=$(python3 -c "import requests; from bs4 import BeautifulSoup; print([e.text.replace('Python ', '') for e in BeautifulSoup(requests.get('https://www.python.org/downloads/').content).find('div', {'class': 'download-list-widget'}).find_all('span', {'class': 'release-number'}) if e.text.startswith('Python ${{ matrix.python-release }}.')][0])")
+          sha=$(curl -s https://www.python.org/ftp/python/${latest_version}/Python-${latest_version}.tgz | shasum -a 256 | awk '{print $1}')
+          sed -i 's%uri: https://www.python.org/ftp/.*%uri: https://www.python.org/ftp/python/'${latest_version}'/Python-'${latest_version}'.tgz%' melange-${{ matrix.python-release }}.yaml
+          sed -i 's%expected-sha256: .*%expected-sha256: '${sha}'%' melange-${{ matrix.python-release }}.yaml
+          if [ "$(git status --porcelain | wc -l)" != "0" ];
+          then
+            git config user.email "infrabits-python3-alpine-update[bot]@users.noreply.github.com"
+            git config user.name "infrabits-python3-alpine-update[bot]"
+            git add melange-${{ matrix.python-release }}.yaml
+            git commit -am "Update melange-${{ matrix.python-release }}.yaml to ${latest_version}"
+            git pull --rebase
+            git push origin ${GITHUB_REF#refs/heads/}
+          fi
