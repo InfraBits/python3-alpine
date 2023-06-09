@@ -13,7 +13,7 @@ jobs:
     concurrency: 'python3-alpine-${{ matrix.python-release }}'
     steps:
       - uses: actions/checkout@v3
-      - run: sudo mkdir -p /work
+      - run: sudo mkdir -p /work/packages
       - uses: chainguard-dev/actions/melange-build@main
         with:
           config: melange-${{ matrix.python-release }}.yaml
