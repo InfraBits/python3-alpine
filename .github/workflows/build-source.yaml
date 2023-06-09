@@ -30,6 +30,6 @@ jobs:
           config: apko.yaml
           archs: amd64
           base-tag: ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}
-          keyring-append: /work/melange.rsa.pub
+          keyring-append: .apko-automount/melange.rsa.pub
           automount-src: .apko-automount
           automount-dest: /work
