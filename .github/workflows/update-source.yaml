@@ -17,6 +17,7 @@ jobs:
           pip install --upgrade requests bs4
           latest_version=$(python3 -c "import requests; from bs4 import BeautifulSoup; print([e.text.replace('Python ', '') for e in BeautifulSoup(requests.get('https://www.python.org/downloads/').content).find('div', {'class': 'download-list-widget'}).find_all('span', {'class': 'release-number'}) if e.text.startswith('Python ${{ matrix.python-release }}.')][0])")
           sha=$(curl -s https://www.python.org/ftp/python/${latest_version}/Python-${latest_version}.tgz | shasum -a 256 | awk '{print $1}')
+          sed -i 's%version: .*%version: '${latest_version}'%' melange-${{ matrix.python-release }}.yaml
           sed -i 's%uri: https://www.python.org/ftp/.*%uri: https://www.python.org/ftp/python/'${latest_version}'/Python-'${latest_version}'.tgz%' melange-${{ matrix.python-release }}.yaml
           sed -i 's%expected-sha256: .*%expected-sha256: '${sha}'%' melange-${{ matrix.python-release }}.yaml
           if [ "$(git status --porcelain | wc -l)" != "0" ];
