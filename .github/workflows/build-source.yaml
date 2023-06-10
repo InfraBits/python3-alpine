@@ -10,6 +10,7 @@ jobs:
         include:
           - {python-release: '3.10'}
           - {python-release: '3.11'}
+          - {python-release: '3.12'}
     concurrency: 'python3-alpine-${{ matrix.python-release }}'
     steps:
       - uses: actions/checkout@v3
