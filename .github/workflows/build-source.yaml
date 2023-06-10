@@ -33,3 +33,20 @@ jobs:
           keyring-append: .apko-automount/melange.rsa.pub
           automount-src: .apko-automount
           automount-dest: /work
+  tag:
+    runs-on: ubuntu-20.04
+    needs: [build]
+    steps:
+      - name: Create GitHub release
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const tag = new Date().toISOString().split('T')[0].replaceAll('-', '');
+            await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'Release ' + tag,
+              tag_name: 'latest-' + tag,
+              draft: false,
+              prerelease: false,
+            })
