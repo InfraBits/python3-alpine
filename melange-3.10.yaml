@@ -1,6 +1,6 @@
 package:
   name: python3
-  version: 3.10.10
+  version: 3.10.12
   epoch: 0
   description: A high-level scripting language
   copyright:
