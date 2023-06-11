@@ -7,10 +7,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        include:
-          - {python-release: '3.10'}
-          - {python-release: '3.11'}
-          - {python-release: '3.12'}
+        python-release: ['3.10', '3.11', '3.12']
     concurrency: 'python3-update-${{ matrix.python-release }}'
     steps:
       - uses: actions/checkout@v3
@@ -29,12 +26,13 @@ jobs:
             sed -i 's%version: .*%version: '${latest_version}'%' melange-${{ matrix.python-release }}.yaml
             sed -i 's%uri: https://www.python.org/ftp/.*%uri: https://www.python.org/ftp/python/'${base_version}'/Python-'${latest_version}'.tgz%' melange-${{ matrix.python-release }}.yaml
             sed -i 's%expected-sha256: .*%expected-sha256: '${sha}'%' melange-${{ matrix.python-release }}.yaml
+            sed -i 's%- python3=.*%- python3='${latest_version}'%' apko-${{ matrix.python-release }}.yaml
             if [ "$(git status --porcelain | wc -l)" != "0" ];
             then
               git config user.email "infrabits-python3-alpine-update[bot]@users.noreply.github.com"
               git config user.name "infrabits-python3-alpine-update[bot]"
-              git add melange-${{ matrix.python-release }}.yaml
-              git commit -am "Update melange-${{ matrix.python-release }}.yaml to ${latest_version}"
+              git add melange-${{ matrix.python-release }}.yaml apko-${{ matrix.python-release }}.yaml
+              git commit -am "Update ${{ matrix.python-release }}.yaml to ${latest_version}"
               git pull --rebase
               git push origin ${GITHUB_REF#refs/heads/}
             fi

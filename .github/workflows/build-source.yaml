@@ -1,40 +1,50 @@
-on: {push: {branches: [main]}, schedule: [{cron: '1 13 * * *'}], workflow_dispatch: {}}
+on: {push: {branches: [main]}, schedule: [{cron: '13 22 * * *'}], workflow_dispatch: {}}
 name: Build
 jobs:
   build:
     runs-on: ubuntu-latest
-    permissions: {id-token: write, packages: write, contents: read}
+    permissions: {packages: write, contents: write}
     continue-on-error: true
     strategy:
       matrix:
-        include:
-          - {python-release: '3.10'}
-          - {python-release: '3.11'}
-          - {python-release: '3.12'}
-    concurrency: 'python3-alpine-${{ matrix.python-release }}'
+        python-release: ['3.10', '3.11', '3.12']
+        archs: ['x86_64,arm64']
+    concurrency: 'python3-alpine-${{ matrix.python-release }}-${{ matrix.archs }}'
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v3
-      - run: sudo mkdir -p /work/packages
-      - uses: chainguard-dev/actions/melange-build@main
-        with:
-          config: melange-${{ matrix.python-release }}.yaml
-          signing-key-path: /work/melange.rsa
-          repository-path: /work/packages
-          empty-workspace: false
-          sign-with-temporary-key: true
-      - name: Create temp copy of /work directory (used in next step)
-        shell: bash
+      - uses: docker/setup-qemu-action@v2
+      - name: Generate version tag
+        id: version
         run: |
-          rm -rf .apko-automount && cp -r /work .apko-automount
-          ls -lra .apko-automount
-      - uses: chainguard-images/actions/apko-snapshot@main
-        with:
-          config: apko.yaml
-          archs: amd64,arm/v6,arm64
-          base-tag: ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}
-          keyring-append: /work/melange.rsa.pub
-          automount-src: .apko-automount/.
-          automount-dest: /work
+          echo "tag=$(date +%s)" >> $GITHUB_OUTPUT
+      - name: Setup workspace
+        run: |
+          mkdir -p ${{ github.workspace }}/work
+          cp melange-${{ matrix.python-release }}.yaml ${{ github.workspace }}/work/
+          cp apko-${{ matrix.python-release }}.yaml ${{ github.workspace }}/work/
+      - name: Build package
+        run: |
+          docker run --privileged -v ${{ github.workspace }}/work:/work ghcr.io/wolfi-dev/melange keygen
+          docker run --privileged -v ${{ github.workspace }}/work:/work ghcr.io/wolfi-dev/melange build --signing-key melange.rsa --arch ${{ matrix.archs }} melange-${{ matrix.python-release }}.yaml
+      - name: Build container
+        run: |
+          docker run \
+            --entrypoint /bin/sh \
+            -i \
+            -v ${{ github.workspace }}/work:/work \
+            ghcr.io/wolfi-dev/apko \
+            -c "$(cat <<"EOF"
+            echo '${{ secrets.GITHUB_TOKEN }}' | apko login -u ${{ github.repository_owner }} --password-stdin --password-stdin ghcr.io
+            apko publish --debug --keyring-append melange.rsa.pub --repository-append /work/packages --arch ${{ matrix.archs }} apko-${{ matrix.python-release }}.yaml ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ steps.version.outputs.tag }}
+          EOF
+          )"
+      - uses: imjasonh/setup-crane@v0.3
+      - name: Update latest tag
+        run: |
+          echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          crane cp ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ steps.version.outputs.tag }} ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest
   tag:
     runs-on: ubuntu-20.04
     needs: [build]
