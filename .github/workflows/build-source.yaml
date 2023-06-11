@@ -26,13 +26,14 @@ jobs:
         shell: bash
         run: |
           rm -rf .apko-automount && cp -r /work .apko-automount
+          ls -lra .apko-automount
       - uses: chainguard-images/actions/apko-snapshot@main
         with:
           config: apko.yaml
           archs: amd64,arm/v6,arm64
           base-tag: ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}
-          keyring-append: .apko-automount/melange.rsa.pub
-          automount-src: .apko-automount
+          keyring-append: /root/melange.rsa.pub
+          automount-src: .apko-automount/.
           automount-dest: /work
   tag:
     runs-on: ubuntu-20.04

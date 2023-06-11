@@ -8,4 +8,3 @@ contents:
     - python3@local
     - py3-wheel
     - py3-pip
-archs: [amd64]
