@@ -24,8 +24,8 @@ jobs:
           fi
           if [ ! -z "${latest_version}" ];
           then
-            sha=$(curl -s https://www.python.org/ftp/python/${base_version}/Python-${latest_version}.tgz | shasum -a 256 | awk '{print $1}')
             base_version=$(echo "${latest_version}" | sed 's/[a-z][0-9]$//')
+            sha=$(curl -s "https://www.python.org/ftp/python/${base_version}/Python-${latest_version}.tgz" | shasum -a 256 | awk '{print $1}')
             sed -i 's%version: .*%version: '${latest_version}'%' melange-${{ matrix.python-release }}.yaml
             sed -i 's%uri: https://www.python.org/ftp/.*%uri: https://www.python.org/ftp/python/'${base_version}'/Python-'${latest_version}'.tgz%' melange-${{ matrix.python-release }}.yaml
             sed -i 's%expected-sha256: .*%expected-sha256: '${sha}'%' melange-${{ matrix.python-release }}.yaml
