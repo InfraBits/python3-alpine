@@ -53,12 +53,11 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const tag = new Date().toISOString().split('T')[0].replaceAll('-', '');
             await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              name: 'Release ' + tag,
-              tag_name: 'latest-' + tag,
+              name: 'Release ${{ steps.version.outputs.tag }}',
+              tag_name: 'latest-${{ steps.version.outputs.tag }}',
               draft: false,
               prerelease: false,
             })
