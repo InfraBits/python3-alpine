@@ -5,4 +5,4 @@ contents:
     - https://dl-cdn.alpinelinux.org/alpine/edge/community
   packages:
     - alpine-base
-    - python3=3.12.0
+    - python3=3.12.0b2
