@@ -1,7 +1,46 @@
 on: {push: {branches: [main]}, schedule: [{cron: '13 22 * * *'}], workflow_dispatch: {}}
 name: Build
 jobs:
-  build:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - name: Generate version tag
+        id: version
+        run: |
+          echo "tag=$(date +%s)" >> $GITHUB_OUTPUT
+  build_base:
+    needs: [setup]
+    runs-on: ubuntu-latest
+    permissions: {packages: write, contents: write}
+    continue-on-error: true
+    concurrency: 'python3-alpine'
+    steps:
+      - uses: actions/checkout@v3
+      - uses: docker/setup-qemu-action@v2
+      - name: Setup workspace
+        run: |
+          mkdir -p ${{ github.workspace }}/work
+          cp apko-base.yaml ${{ github.workspace }}/work/
+      - name: Build container
+        run: |
+          docker run \
+            --entrypoint /bin/sh \
+            -i \
+            -v ${{ github.workspace }}/work:/work \
+            ghcr.io/wolfi-dev/apko \
+            -c "$(cat <<"EOF"
+            echo '${{ secrets.GITHUB_TOKEN }}' | apko login -u ${{ github.repository_owner }} --password-stdin --password-stdin ghcr.io
+            apko publish --debug --arch x86_64,arm64 apko-base.yaml ghcr.io/infrabits/python3-alpine:latest-${{ needs.setup.outputs.tag }}
+          EOF
+          )"
+      - uses: imjasonh/setup-crane@v0.3
+      - name: Update latest tag
+        run: |
+          echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
+          crane cp ghcr.io/infrabits/python3-alpine:latest-${{ needs.setup.outputs.tag }} ghcr.io/infrabits/python3-alpine:latest
+  build_source:
     runs-on: ubuntu-latest
     permissions: {packages: write, contents: write}
     continue-on-error: true
@@ -9,16 +48,11 @@ jobs:
       matrix:
         python-release: ['3.10', '3.11', '3.12']
         archs: ['x86_64,arm64']
-    concurrency: 'python3-alpine-${{ matrix.python-release }}-${{ matrix.archs }}'
     outputs:
-      tag: ${{ steps.version.outputs.tag }}
+      tag: ${{ needs.setup.outputs.tag }}
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
-      - name: Generate version tag
-        id: version
-        run: |
-          echo "tag=$(date +%s)" >> $GITHUB_OUTPUT
       - name: Setup workspace
         run: |
           mkdir -p ${{ github.workspace }}/work
@@ -37,17 +71,17 @@ jobs:
             ghcr.io/wolfi-dev/apko \
             -c "$(cat <<"EOF"
             echo '${{ secrets.GITHUB_TOKEN }}' | apko login -u ${{ github.repository_owner }} --password-stdin --password-stdin ghcr.io
-            apko publish --debug --keyring-append melange.rsa.pub --repository-append /work/packages --arch ${{ matrix.archs }} apko-${{ matrix.python-release }}.yaml ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ steps.version.outputs.tag }}
+            apko publish --debug --keyring-append melange.rsa.pub --repository-append /work/packages --arch ${{ matrix.archs }} apko-${{ matrix.python-release }}.yaml ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ needs.setup.outputs.tag }}
           EOF
           )"
       - uses: imjasonh/setup-crane@v0.3
       - name: Update latest tag
         run: |
           echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-          crane cp ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ steps.version.outputs.tag }} ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest
+          crane cp ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ needs.setup.outputs.tag }} ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest
   tag:
     runs-on: ubuntu-20.04
-    needs: [build]
+    needs: [build_source, build_base]
     steps:
       - name: Create GitHub release
         uses: actions/github-script@v6
@@ -56,8 +90,8 @@ jobs:
             await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              name: 'Release ${{ steps.version.outputs.tag }}',
-              tag_name: 'latest-${{ steps.version.outputs.tag }}',
+              name: 'Release ${{ needs.setup.outputs.tag }}',
+              tag_name: 'latest-${{ needs.setup.outputs.tag }}',
               draft: false,
               prerelease: false,
             })

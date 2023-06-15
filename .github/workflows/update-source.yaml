@@ -7,7 +7,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        python-release: ['3.10', '3.11', '3.12']
+        python-release: ['3.10', '3.11']
     concurrency: 'python3-update-${{ matrix.python-release }}'
     steps:
       - uses: actions/checkout@v3

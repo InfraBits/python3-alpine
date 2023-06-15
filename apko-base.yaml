@@ -1,8 +1,9 @@
 contents:
   repositories:
-    - '/work/packages'
     - https://dl-cdn.alpinelinux.org/alpine/edge/main
     - https://dl-cdn.alpinelinux.org/alpine/edge/community
   packages:
     - alpine-base
-    - python3=3.12.0b2
+    - python3
+    - py3-wheel
+    - py3-pip
