@@ -46,7 +46,7 @@ jobs:
     continue-on-error: true
     strategy:
       matrix:
-        python-release: ['3.10', '3.11', '3.12']
+        python-release: ['3.10', '3.11']
         archs: ['x86_64,arm64']
     outputs:
       tag: ${{ needs.setup.outputs.tag }}
@@ -81,7 +81,7 @@ jobs:
           crane cp ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ needs.setup.outputs.tag }} ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest
   tag:
     runs-on: ubuntu-20.04
-    needs: [build_source, build_base]
+    needs: [setup, build_source, build_base]
     steps:
       - name: Create GitHub release
         uses: actions/github-script@v6
