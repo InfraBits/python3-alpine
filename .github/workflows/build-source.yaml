@@ -41,6 +41,7 @@ jobs:
           echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
           crane cp ghcr.io/infrabits/python3-alpine:latest-${{ needs.setup.outputs.tag }} ghcr.io/infrabits/python3-alpine:latest
   build_source:
+    needs: [setup]
     runs-on: ubuntu-latest
     permissions: {packages: write, contents: write}
     continue-on-error: true
@@ -48,8 +49,6 @@ jobs:
       matrix:
         python-release: ['3.10', '3.11']
         archs: ['x86_64,arm64']
-    outputs:
-      tag: ${{ needs.setup.outputs.tag }}
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
