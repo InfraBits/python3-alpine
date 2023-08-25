@@ -1,6 +1,6 @@
 package:
   name: python3
-  version: 3.10.12
+  version: 3.10.13
   epoch: 0
   description: A high-level scripting language
   copyright:
@@ -30,8 +30,8 @@ environment:
 pipeline:
   - uses: fetch
     with:
-      uri: https://www.python.org/ftp/python/3.10.12/Python-3.10.12.tgz
-      expected-sha256: a43cd383f3999a6f4a7db2062b2fc9594fefa73e175b3aedafa295a51a7bb65c
+      uri: https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz
+      expected-sha256: 698ec55234c1363bd813b460ed53b0f108877c7a133d48bde9a50a1eb57b7e65
   - name: Force use of system libraries
     runs: |
       rm -rf Modules/expat \
