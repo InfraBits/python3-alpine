@@ -12,6 +12,7 @@ environment:
     repositories: [https://dl-cdn.alpinelinux.org/alpine/edge/main]
     packages:
       - busybox
+      - dash
       - ca-certificates-bundle
       - build-base
       - bzip2-dev
