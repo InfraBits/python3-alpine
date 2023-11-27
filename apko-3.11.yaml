@@ -1,8 +1,0 @@
-contents:
-  repositories:
-    - '/work/packages'
-    - https://dl-cdn.alpinelinux.org/alpine/edge/main
-    - https://dl-cdn.alpinelinux.org/alpine/edge/community
-  packages:
-    - alpine-baselayout-data
-    - python3=3.11.6

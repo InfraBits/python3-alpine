@@ -40,47 +40,9 @@ jobs:
         run: |
           echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
           crane cp ghcr.io/infrabits/python3-alpine:latest-${{ needs.setup.outputs.tag }} ghcr.io/infrabits/python3-alpine:latest
-  build_source:
-    needs: [setup]
-    runs-on: ubuntu-latest
-    permissions: {packages: write, contents: write}
-    continue-on-error: true
-    strategy:
-      matrix:
-        python-release: ['3.10', '3.11']
-        archs: ['x86_64,arm64']
-    steps:
-      - uses: actions/checkout@v3
-      - uses: docker/setup-qemu-action@v2
-      - name: Setup workspace
-        run: |
-          mkdir -p ${{ github.workspace }}/work
-          cp melange-${{ matrix.python-release }}.yaml ${{ github.workspace }}/work/
-          cp apko-${{ matrix.python-release }}.yaml ${{ github.workspace }}/work/
-      - name: Build package
-        run: |
-          docker run --privileged -v ${{ github.workspace }}/work:/work ghcr.io/wolfi-dev/melange keygen
-          docker run --privileged -v ${{ github.workspace }}/work:/work ghcr.io/wolfi-dev/melange build --signing-key melange.rsa --arch ${{ matrix.archs }} melange-${{ matrix.python-release }}.yaml
-      - name: Build container
-        run: |
-          docker run \
-            --entrypoint /bin/sh \
-            -i \
-            -v ${{ github.workspace }}/work:/work \
-            ghcr.io/wolfi-dev/apko \
-            -c "$(cat <<"EOF"
-            echo '${{ secrets.GITHUB_TOKEN }}' | apko login -u ${{ github.repository_owner }} --password-stdin --password-stdin ghcr.io
-            apko publish --debug --keyring-append melange.rsa.pub --repository-append /work/packages --arch ${{ matrix.archs }} apko-${{ matrix.python-release }}.yaml ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ needs.setup.outputs.tag }}
-          EOF
-          )"
-      - uses: imjasonh/setup-crane@v0.3
-      - name: Update latest tag
-        run: |
-          echo '${{ secrets.GITHUB_TOKEN }}' | docker login ghcr.io -u ${{ github.repository_owner }} --password-stdin
-          crane cp ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest-${{ needs.setup.outputs.tag }} ghcr.io/infrabits/python3-alpine-${{ matrix.python-release }}:latest
   tag:
     runs-on: ubuntu-20.04
-    needs: [setup, build_source, build_base]
+    needs: [setup, build_base]
     steps:
       - name: Create GitHub release
         uses: actions/github-script@v6
